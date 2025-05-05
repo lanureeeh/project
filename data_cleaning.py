@@ -13,7 +13,7 @@ def clean_fas_data():
         'Mexico', 'Peru', 'Belize', 'Costa Rica', 'El Salvador', 'Guatemala',
         'Honduras', 'Nicaragua', 'Panama', 'Cuba', 'Dominican Republic', 'Haiti',
         'Puerto Rico', 'Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia',
-        'Ecuador', 'Guyana', 'Paraguay', 'Suriname', 'Uruguay', 'Venezuela, RB'
+        'Ecuador', 'Guyana', 'Paraguay', 'Suriname', 'Uruguay', 'Venezuela, República Bolivariana de'
     ]
 
     # Filter the data to keep only the specified countries
@@ -56,7 +56,7 @@ def clean_wgi_data():
         'Mexico', 'Peru', 'Belize', 'Costa Rica', 'El Salvador', 'Guatemala',
         'Honduras', 'Nicaragua', 'Panama', 'Cuba', 'Dominican Republic', 'Haiti',
         'Puerto Rico', 'Argentina', 'Bolivia', 'Brazil', 'Chile', 'Colombia',
-        'Ecuador', 'Guyana', 'Paraguay', 'Suriname', 'Uruguay', 'Venezuela'
+        'Ecuador', 'Guyana', 'Paraguay', 'Suriname', 'Uruguay', 'Venezuela, RB'
     ]
 
     # Delete the 'codeindyr' and 'code' columns

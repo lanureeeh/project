@@ -1,5 +1,5 @@
 import pandas as pd
-
+import re
 
 def clean_fas_data():
     # Read the FAS.csv file
@@ -38,8 +38,30 @@ def clean_fas_data():
     print("FAS.csv - Cleaned Data:")
     print(data_cleaned.head())
 
+    # Steps to convert the data to long format
+    # 1) Identify the year-columns via regex (exactly four digits)
+    year_cols = [col for col in data_cleaned.columns if re.fullmatch(r"\d{4}", col)]
+
+    # 2) Melt into long format
+    df_long = data_cleaned.melt(
+        id_vars=["COUNTRY", "INDICATOR"],
+        value_vars=year_cols,
+        var_name="year",
+        value_name="value"
+    )
+
+    # 3) Convert types
+    df_long["year"] = df_long["year"].astype(int)
+    df_long["value"] = pd.to_numeric(df_long["value"], errors="coerce")
+
+    # 4) Write out to CSV (no index column)
+    df_long.to_csv("clean_data/FAS_clean_long.csv", index=False)
+
+    print("Wrote", len(df_long), "rows to clean_data/FAS_clean_long.csv")
+
+
     # Save the cleaned data to a new CSV file
-    data_cleaned.to_csv('clean_data/FAS_cleaned.csv', index=False)
+    df_long.to_csv('clean_data/FAS_cleaned.csv', index=False)
 
     print("FAS.csv cleaning complete. 'FAS_cleaned.csv' has been created.")
 

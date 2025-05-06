@@ -60,4 +60,4 @@ venv.bak/
 *.csv
 *.xlsx
 *.db
-*.sqlite 
+*.sqlite OPTIONAL_all_countries/FAS_full.csv

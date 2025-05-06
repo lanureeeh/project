@@ -1,16 +1,53 @@
-# Byte-compiled / optimized / DLL files
+# Data files
+*.csv
+*.xlsx
+*.xls
+*.json
+*.sqlite
+*.db
+
+# Specifically ignore large files
+OPTIONAL_all_countries/
+**/FAS_full.csv
+data/raw/FAS_full.csv
+raw_data/FAS_full.csv
+**/data/raw/*.csv
+**/raw_data/*.csv
+
+# Python bytecode
 __pycache__/
 *.py[cod]
 *$py.class
 
-# C extensions
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE files
+.idea/
+.vscode/
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Byte-compiled / optimized / DLL files
 *.so
 
 # Distribution / packaging
 .Python
-build/
 develop-eggs/
-dist/
 downloads/
 eggs/
 .eggs/
@@ -20,7 +57,6 @@ parts/
 sdist/
 var/
 wheels/
-*.egg-info/
 .installed.cfg
 *.egg
 
@@ -35,18 +71,10 @@ coverage.xml
 *.cover
 .hypothesis/
 
-# Jupyter Notebook
-.ipynb_checkpoints
-
 # pyenv
 .python-version
 
 # Environments
-.env
-.venv
-env/
-venv/
-ENV/
 env.bak/
 venv.bak/
 
@@ -55,9 +83,3 @@ venv.bak/
 
 # VS Code
 .vscode/
-
-# Data files
-*.csv
-*.xlsx
-*.db
-*.sqlite OPTIONAL_all_countries/FAS_full.csv

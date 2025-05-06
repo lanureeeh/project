@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Mambaforge
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        miniforge-variant: Mambaforge
+        miniforge-version: latest
+        activate-environment: latam-fininc
+        use-mamba: true
+    
+    - name: Cache conda environment
+      uses: actions/cache@v3
+      with:
+        path: ${{ env.CONDA }}/envs/latam-fininc
+        key: ${{ runner.os }}-conda-${{ hashFiles('environment.yml') }}
+        restore-keys: |
+          ${{ runner.os }}-conda-
+    
+    - name: Install dependencies
+      run: |
+        mamba env update -f environment.yml
+        conda activate latam-fininc
+        pip install black flake8 pytest pytest-cov
+    
+    - name: Run Black code style check
+      run: |
+        black --check .
+    
+    - name: Run Flake8 linting
+      run: |
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    
+    - name: Run tests with pytest
+      run: |
+        pytest --cov=src/ --cov-report=xml
+    
+    - name: Run data processing with dry-run
+      run: |
+        mkdir -p reports/logs
+        python -m src.data.build_panel --dry-run > reports/logs/build_panel_dryrun.log 2>&1 || (cat reports/logs/build_panel_dryrun.log && exit 1)
+    
+    - name: Upload logs
+      uses: actions/upload-artifact@v3
+      with:
+        name: logs
+        path: reports/logs/
+        if-no-files-found: warn
+    
+    - name: Upload missing data visualization
+      uses: actions/upload-artifact@v3
+      with:
+        name: figures
+        path: reports/figures/missing_poverty.png
+        if-no-files-found: warn 

@@ -19,6 +19,11 @@ def clean_fas_data():
     # Filter the data to keep only the specified countries
     data_filtered = data[data['COUNTRY'].isin(countries_to_keep)]
 
+    # Exceptional name standardization for 'Venezuela, República Bolivariana de'
+    # the ' sign leading to missing values in the COUNTRY column after exporting to csv
+    # Replacing Venezuel, República Bolivariana de with Venezuela
+    data_filtered['COUNTRY'] = data_filtered['COUNTRY'].replace('Venezuela, República Bolivariana de', 'Venezuela')
+
     # Columns to delete
     delete_columns = [
         'DATASET', 'SERIES_CODE', 'OBS_MEASURE', 'FREQUENCY',
@@ -51,12 +56,14 @@ def clean_fas_data():
     'Number of automated teller machines (ATMs)',
 
     # Depositors 
+    'Number of depositors, Commercial banks',
     'Depositors, Deposit taking microfinance institutions',
     'Depositors, Commercial banks',
     'Number of depositors, Commercial banks',
     'Number of depositors, Credit unions and credit cooperatives',
 
     # Deposit accounts 
+    'Number of deposit accounts, Commercial banks',
     'Deposit accounts, Commercial banks',
     'Deposit accounts, Deposit taking microfinance institutions',
     'Deposit accounts, Credit unions and credit cooperatives',
@@ -64,12 +71,14 @@ def clean_fas_data():
     'Number of deposit accounts, Credit unions and credit cooperatives',
 
     # Borrowers
+    'Number of borrowers, Commercial banks',
     'Borrowers, Commercial banks',
     'Borrowers, Deposit taking microfinance institutions',
     'Borrowers, Credit unions and credit cooperatives',
     'Borrowers, Non-deposit taking microfinance institutions',
 
     # Loan accounts
+    'Number of loan accounts, Commercial banks',
     'Loan accounts, Commercial banks',
     'Loan accounts, Deposit taking microfinance institutions',
     'Loan accounts, Credit unions and credit cooperatives',
@@ -95,21 +104,18 @@ def clean_fas_data():
     df_long["year"] = df_long["year"].astype(int)
     df_long["value"] = pd.to_numeric(df_long["value"], errors="coerce")
 
-    print("Missing values before filtering for years: ", df_long.COUNTRY.isnull().sum())  # Check for null values in COUNTRY column
-
     # Filter for the years 2004 to 2023
     df_long = df_long[(df_long['year'] >= 2004) & (df_long['year'] <= 2023)]
-    print("Missing values after filtering for years: ", df_long.COUNTRY.isnull().sum())  # Check for null values in COUNTRY column
+   
     # Sort the DataFrame by country, Indicator and year
     df_long = df_long.sort_values(by=["COUNTRY", "INDICATOR", "year"])
 
     # Save the cleaned data to a new CSV file
     df_long.to_csv('clean_data/FAS_cleaned.csv', index=False)
     print("FAS.csv cleaning complete. 'FAS_cleaned.csv' has been created.")
-    print("Missing values after the file is written", df_long.COUNTRY.isna().sum())  # Check for null values in COUNTRY column
-    written_fas = pd.read_csv('clean_data/FAS_cleaned.csv')
-    print("Missing value from importing the file: ", written_fas.isnull().sum())  # Check for null values in COUNTRY column
-    print(written_fas.COUNTRY.unique())
+
+
+
 
 def clean_wgi_data():
     # Read the WGI.csv file
@@ -224,7 +230,7 @@ def standardize_country_names(file_path):
         'Suriname': 'Suriname',
         'Uruguay': 'Uruguay',
         'Venezuela': 'Venezuela',
-        'Venezuela, RB': 'Venezuela'
+        'Venezuela, RB': 'Venezuela',
     }
     
     # Check for possible column names for countries

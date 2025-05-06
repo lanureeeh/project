@@ -21,7 +21,7 @@ def clean_fas_data():
 
     # Columns to delete
     delete_columns = [
-        'DATASET', 'SERIES_CODE', 'OBS_MEASURE', 'TYPE_OF_TRANSFORMATION', 'FREQUENCY',
+        'DATASET', 'SERIES_CODE', 'OBS_MEASURE', 'FREQUENCY',
         'SCALE', 'PRECISION', 'DECIMALS_DISPLAYED', 'INSTR_ASSET', 'FA_INDICATORS',
         'SECTOR', 'COUNTERPART_SECTOR', 'ACCOUNTING_ENTRY', 'SEX', 'TRANSFORMATION',
         'UNIT', 'DERIVATION_TYPE', 'OVERLAP', 'STATUS', 'DOI', 'FULL_DESCRIPTION',
@@ -35,16 +35,57 @@ def clean_fas_data():
     # Drop the specified columns
     data_cleaned = data_filtered.drop(columns=delete_columns)
 
-    print("FAS.csv - Cleaned Data:")
-    print(data_cleaned.head())
+    selected_indicators = [
+    # Branches
+    'Branches excluding headquarters, Other deposit takers',
+    'Branches excluding headquarters, Commercial banks',
+    'Branches excluding headquarters, Credit unions and credit cooperatives',
+    'Branches excluding headquarters, Deposit taking microfinance institutions',
+    'Branches excluding headquarters, Non-deposit taking microfinance institutions',
+    'Number of commercial bank branches',
+    'Number of credit union and credit cooperative branches',
+    'Number of other deposit taker branches',
+    'Number of all microfinance institution branches',
+
+    # ATMs
+    'Number of automated teller machines (ATMs)',
+
+    # Depositors 
+    'Depositors, Deposit taking microfinance institutions',
+    'Depositors, Commercial banks',
+    'Number of depositors, Commercial banks',
+    'Number of depositors, Credit unions and credit cooperatives',
+
+    # Deposit accounts 
+    'Deposit accounts, Commercial banks',
+    'Deposit accounts, Deposit taking microfinance institutions',
+    'Deposit accounts, Credit unions and credit cooperatives',
+    'Number of deposit accounts, Commercial banks',
+    'Number of deposit accounts, Credit unions and credit cooperatives',
+
+    # Borrowers
+    'Borrowers, Commercial banks',
+    'Borrowers, Deposit taking microfinance institutions',
+    'Borrowers, Credit unions and credit cooperatives',
+    'Borrowers, Non-deposit taking microfinance institutions',
+
+    # Loan accounts
+    'Loan accounts, Commercial banks',
+    'Loan accounts, Deposit taking microfinance institutions',
+    'Loan accounts, Credit unions and credit cooperatives',
+    'Loan accounts, Non-deposit taking microfinance institutions',
+    ]
+
+    data_cleaned_filtered_indicators = data_cleaned[data_cleaned['INDICATOR'].isin(selected_indicators)]
 
     # Steps to convert the data to long format
     # 1) Identify the year-columns via regex (exactly four digits)
-    year_cols = [col for col in data_cleaned.columns if re.fullmatch(r"\d{4}", col)]
+    year_cols = [col for col in data_cleaned_filtered_indicators.columns if re.fullmatch(r"\d{4}", col)]
 
     # 2) Melt into long format
-    df_long = data_cleaned.melt(
-        id_vars=["COUNTRY", "INDICATOR"],
+
+    df_long = data_cleaned_filtered_indicators.melt(
+        id_vars=["COUNTRY", "INDICATOR", 'TYPE_OF_TRANSFORMATION'],
         value_vars=year_cols,
         var_name="year",
         value_name="value"
@@ -54,17 +95,21 @@ def clean_fas_data():
     df_long["year"] = df_long["year"].astype(int)
     df_long["value"] = pd.to_numeric(df_long["value"], errors="coerce")
 
-    # 4) Write out to CSV (no index column)
-    df_long.to_csv("clean_data/FAS_clean_long.csv", index=False)
+    print("Missing values before filtering for years: ", df_long.COUNTRY.isnull().sum())  # Check for null values in COUNTRY column
 
-    print("Wrote", len(df_long), "rows to clean_data/FAS_clean_long.csv")
-
+    # Filter for the years 2004 to 2023
+    df_long = df_long[(df_long['year'] >= 2004) & (df_long['year'] <= 2023)]
+    print("Missing values after filtering for years: ", df_long.COUNTRY.isnull().sum())  # Check for null values in COUNTRY column
+    # Sort the DataFrame by country, Indicator and year
+    df_long = df_long.sort_values(by=["COUNTRY", "INDICATOR", "year"])
 
     # Save the cleaned data to a new CSV file
     df_long.to_csv('clean_data/FAS_cleaned.csv', index=False)
-
     print("FAS.csv cleaning complete. 'FAS_cleaned.csv' has been created.")
-
+    print("Missing values after the file is written", df_long.COUNTRY.isna().sum())  # Check for null values in COUNTRY column
+    written_fas = pd.read_csv('clean_data/FAS_cleaned.csv')
+    print("Missing value from importing the file: ", written_fas.isnull().sum())  # Check for null values in COUNTRY column
+    print(written_fas.COUNTRY.unique())
 
 def clean_wgi_data():
     # Read the WGI.csv file

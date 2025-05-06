@@ -1,0 +1,736 @@
+country,year,gii_value
+Argentina,2023,70.0
+Belize,2023,110.0
+Brazil,2023,96.0
+Chile,2023,33.0
+Colombia,2023,98.0
+Costa Rica,2023,55.0
+Cuba,2023,75.0
+Dominican Republic,2023,106.0
+Ecuador,2023,88.0
+El Salvador,2023,92.0
+Guatemala,2023,121.0
+Guyana,2023,109.0
+Haiti,2023,165.0
+Honduras,2023,112.0
+Mexico,2023,88.0
+Nicaragua,2023,103.0
+Panama,2023,94.0
+Paraguay,2023,104.0
+Peru,2023,83.0
+Suriname,2023,97.0
+Uruguay,2023,56.0
+Argentina,1990,0.489
+Belize,1990,
+Brazil,1990,0.582
+Chile,1990,0.508
+Colombia,1990,
+Costa Rica,1990,
+Cuba,1990,
+Dominican Republic,1990,0.574
+Ecuador,1990,0.648
+El Salvador,1990,0.536
+Guatemala,1990,
+Guyana,1990,
+Haiti,1990,
+Honduras,1990,
+Mexico,1990,0.552
+Nicaragua,1990,0.625
+Panama,1990,0.539
+Paraguay,1990,0.607
+Peru,1990,0.569
+Suriname,1990,
+Uruguay,1990,0.426
+Argentina,1991,0.452
+Belize,1991,
+Brazil,1991,0.577
+Chile,1991,0.504
+Colombia,1991,
+Costa Rica,1991,
+Cuba,1991,
+Dominican Republic,1991,0.573
+Ecuador,1991,0.64
+El Salvador,1991,0.531
+Guatemala,1991,
+Guyana,1991,
+Haiti,1991,
+Honduras,1991,
+Mexico,1991,0.51
+Nicaragua,1991,0.62
+Panama,1991,0.519
+Paraguay,1991,0.607
+Peru,1991,0.576
+Suriname,1991,
+Uruguay,1991,0.429
+Argentina,1992,0.45
+Belize,1992,
+Brazil,1992,0.561
+Chile,1992,0.491
+Colombia,1992,
+Costa Rica,1992,
+Cuba,1992,
+Dominican Republic,1992,0.565
+Ecuador,1992,0.629
+El Salvador,1992,0.545
+Guatemala,1992,
+Guyana,1992,
+Haiti,1992,
+Honduras,1992,
+Mexico,1992,0.505
+Nicaragua,1992,0.62
+Panama,1992,0.517
+Paraguay,1992,0.603
+Peru,1992,0.579
+Suriname,1992,
+Uruguay,1992,0.426
+Argentina,1993,0.442
+Belize,1993,
+Brazil,1993,0.557
+Chile,1993,0.486
+Colombia,1993,
+Costa Rica,1993,
+Cuba,1993,
+Dominican Republic,1993,0.613
+Ecuador,1993,0.617
+El Salvador,1993,0.536
+Guatemala,1993,
+Guyana,1993,
+Haiti,1993,
+Honduras,1993,
+Mexico,1993,0.498
+Nicaragua,1993,0.617
+Panama,1993,0.513
+Paraguay,1993,0.599
+Peru,1993,0.602
+Suriname,1993,
+Uruguay,1993,0.426
+Argentina,1994,0.444
+Belize,1994,0.54
+Brazil,1994,0.553
+Chile,1994,0.483
+Colombia,1994,
+Costa Rica,1994,
+Cuba,1994,
+Dominican Republic,1994,0.565
+Ecuador,1994,0.607
+El Salvador,1994,0.526
+Guatemala,1994,0.654
+Guyana,1994,
+Haiti,1994,
+Honduras,1994,
+Mexico,1994,0.492
+Nicaragua,1994,0.616
+Panama,1994,0.509
+Paraguay,1994,0.596
+Peru,1994,0.571
+Suriname,1994,
+Uruguay,1994,0.426
+Argentina,1995,0.442
+Belize,1995,0.532
+Brazil,1995,0.543
+Chile,1995,0.477
+Colombia,1995,
+Costa Rica,1995,
+Cuba,1995,
+Dominican Republic,1995,0.563
+Ecuador,1995,0.599
+El Salvador,1995,0.523
+Guatemala,1995,0.646
+Guyana,1995,
+Haiti,1995,
+Honduras,1995,
+Mexico,1995,0.485
+Nicaragua,1995,0.613
+Panama,1995,0.506
+Paraguay,1995,0.581
+Peru,1995,0.564
+Suriname,1995,
+Uruguay,1995,0.422
+Argentina,1996,0.429
+Belize,1996,0.526
+Brazil,1996,0.536
+Chile,1996,0.469
+Colombia,1996,
+Costa Rica,1996,
+Cuba,1996,
+Dominican Republic,1996,0.56
+Ecuador,1996,0.592
+El Salvador,1996,0.515
+Guatemala,1996,0.638
+Guyana,1996,
+Haiti,1996,
+Honduras,1996,
+Mexico,1996,0.483
+Nicaragua,1996,0.608
+Panama,1996,0.498
+Paraguay,1996,0.578
+Peru,1996,0.546
+Suriname,1996,
+Uruguay,1996,0.419
+Argentina,1997,0.429
+Belize,1997,0.523
+Brazil,1997,0.53
+Chile,1997,0.465
+Colombia,1997,
+Costa Rica,1997,
+Cuba,1997,
+Dominican Republic,1997,0.553
+Ecuador,1997,0.59
+El Salvador,1997,0.5
+Guatemala,1997,0.628
+Guyana,1997,
+Haiti,1997,
+Honduras,1997,
+Mexico,1997,0.477
+Nicaragua,1997,0.6
+Panama,1997,0.498
+Paraguay,1997,0.577
+Peru,1997,0.534
+Suriname,1997,
+Uruguay,1997,0.415
+Argentina,1998,0.425
+Belize,1998,0.527
+Brazil,1998,0.522
+Chile,1998,0.44
+Colombia,1998,
+Costa Rica,1998,
+Cuba,1998,
+Dominican Republic,1998,0.532
+Ecuador,1998,0.498
+El Salvador,1998,0.482
+Guatemala,1998,0.617
+Guyana,1998,
+Haiti,1998,
+Honduras,1998,0.549
+Mexico,1998,0.459
+Nicaragua,1998,0.599
+Panama,1998,0.496
+Paraguay,1998,0.579
+Peru,1998,0.525
+Suriname,1998,
+Uruguay,1998,0.41
+Argentina,1999,0.421
+Belize,1999,0.514
+Brazil,1999,0.514
+Chile,1999,0.438
+Colombia,1999,
+Costa Rica,1999,
+Cuba,1999,
+Dominican Republic,1999,0.52
+Ecuador,1999,0.499
+El Salvador,1999,0.468
+Guatemala,1999,0.634
+Guyana,1999,
+Haiti,1999,
+Honduras,1999,0.542
+Mexico,1999,0.454
+Nicaragua,1999,0.597
+Panama,1999,0.494
+Paraguay,1999,0.557
+Peru,1999,0.505
+Suriname,1999,
+Uruguay,1999,0.381
+Argentina,2000,0.426
+Belize,2000,0.508
+Brazil,2000,0.506
+Chile,2000,0.433
+Colombia,2000,
+Costa Rica,2000,0.443
+Cuba,2000,
+Dominican Republic,2000,0.507
+Ecuador,2000,0.511
+El Salvador,2000,0.491
+Guatemala,2000,0.584
+Guyana,2000,
+Haiti,2000,
+Honduras,2000,0.539
+Mexico,2000,0.459
+Nicaragua,2000,0.569
+Panama,2000,0.495
+Paraguay,2000,0.544
+Peru,2000,0.497
+Suriname,2000,
+Uruguay,2000,0.379
+Argentina,2001,0.425
+Belize,2001,0.505
+Brazil,2001,0.495
+Chile,2001,0.435
+Colombia,2001,
+Costa Rica,2001,0.408
+Cuba,2001,
+Dominican Republic,2001,0.495
+Ecuador,2001,0.498
+El Salvador,2001,0.487
+Guatemala,2001,0.575
+Guyana,2001,
+Haiti,2001,0.593
+Honduras,2001,0.535
+Mexico,2001,0.46
+Nicaragua,2001,0.573
+Panama,2001,0.494
+Paraguay,2001,0.541
+Peru,2001,0.459
+Suriname,2001,
+Uruguay,2001,0.367
+Argentina,2002,0.396
+Belize,2002,0.492
+Brazil,2002,0.494
+Chile,2002,0.417
+Colombia,2002,0.502
+Costa Rica,2002,0.367
+Cuba,2002,
+Dominican Republic,2002,0.485
+Ecuador,2002,0.494
+El Salvador,2002,0.466
+Guatemala,2002,0.572
+Guyana,2002,
+Haiti,2002,0.588
+Honduras,2002,0.566
+Mexico,2002,0.46
+Nicaragua,2002,0.526
+Panama,2002,0.48
+Paraguay,2002,0.531
+Peru,2002,0.454
+Suriname,2002,
+Uruguay,2002,0.363
+Argentina,2003,0.397
+Belize,2003,0.509
+Brazil,2003,0.471
+Chile,2003,0.41
+Colombia,2003,0.491
+Costa Rica,2003,0.365
+Cuba,2003,
+Dominican Republic,2003,0.488
+Ecuador,2003,0.486
+El Salvador,2003,0.455
+Guatemala,2003,0.572
+Guyana,2003,
+Haiti,2003,0.584
+Honduras,2003,0.556
+Mexico,2003,0.435
+Nicaragua,2003,0.521
+Panama,2003,0.479
+Paraguay,2003,0.528
+Peru,2003,0.45
+Suriname,2003,
+Uruguay,2003,0.357
+Argentina,2004,0.39
+Belize,2004,0.493
+Brazil,2004,0.47
+Chile,2004,0.393
+Colombia,2004,0.489
+Costa Rica,2004,0.355
+Cuba,2004,0.334
+Dominican Republic,2004,0.491
+Ecuador,2004,0.478
+El Salvador,2004,0.448
+Guatemala,2004,0.575
+Guyana,2004,
+Haiti,2004,0.589
+Honduras,2004,0.538
+Mexico,2004,0.433
+Nicaragua,2004,0.524
+Panama,2004,0.451
+Paraguay,2004,0.515
+Peru,2004,0.452
+Suriname,2004,0.524
+Uruguay,2004,0.352
+Argentina,2005,0.375
+Belize,2005,0.483
+Brazil,2005,0.467
+Chile,2005,0.379
+Colombia,2005,0.488
+Costa Rica,2005,0.344
+Cuba,2005,0.333
+Dominican Republic,2005,0.49
+Ecuador,2005,0.477
+El Salvador,2005,0.446
+Guatemala,2005,0.573
+Guyana,2005,
+Haiti,2005,0.579
+Honduras,2005,0.474
+Mexico,2005,0.425
+Nicaragua,2005,0.521
+Panama,2005,0.439
+Paraguay,2005,0.516
+Peru,2005,0.448
+Suriname,2005,0.495
+Uruguay,2005,0.351
+Argentina,2006,0.375
+Belize,2006,0.468
+Brazil,2006,0.466
+Chile,2006,0.382
+Colombia,2006,0.494
+Costa Rica,2006,0.332
+Cuba,2006,0.331
+Dominican Republic,2006,0.481
+Ecuador,2006,0.452
+El Salvador,2006,0.415
+Guatemala,2006,0.563
+Guyana,2006,
+Haiti,2006,0.612
+Honduras,2006,0.479
+Mexico,2006,0.43
+Nicaragua,2006,0.528
+Panama,2006,0.442
+Paraguay,2006,0.513
+Peru,2006,0.414
+Suriname,2006,0.493
+Uruguay,2006,0.349
+Argentina,2007,0.374
+Belize,2007,0.445
+Brazil,2007,0.463
+Chile,2007,0.376
+Colombia,2007,0.495
+Costa Rica,2007,0.334
+Cuba,2007,0.331
+Dominican Republic,2007,0.486
+Ecuador,2007,0.451
+El Salvador,2007,0.419
+Guatemala,2007,0.541
+Guyana,2007,
+Haiti,2007,0.605
+Honduras,2007,0.478
+Mexico,2007,0.43
+Nicaragua,2007,0.515
+Panama,2007,0.44
+Paraguay,2007,0.499
+Peru,2007,0.41
+Suriname,2007,0.487
+Uruguay,2007,0.337
+Argentina,2008,0.373
+Belize,2008,0.438
+Brazil,2008,0.46
+Chile,2008,0.37
+Colombia,2008,0.485
+Costa Rica,2008,0.331
+Cuba,2008,0.326
+Dominican Republic,2008,0.484
+Ecuador,2008,0.452
+El Salvador,2008,0.409
+Guatemala,2008,0.538
+Guyana,2008,
+Haiti,2008,0.613
+Honduras,2008,0.475
+Mexico,2008,0.433
+Nicaragua,2008,0.506
+Panama,2008,0.442
+Paraguay,2008,0.489
+Peru,2008,0.406
+Suriname,2008,0.48
+Uruguay,2008,0.333
+Argentina,2009,0.37
+Belize,2009,0.423
+Brazil,2009,0.456
+Chile,2009,0.357
+Colombia,2009,0.478
+Costa Rica,2009,0.325
+Cuba,2009,0.327
+Dominican Republic,2009,0.49
+Ecuador,2009,0.439
+El Salvador,2009,0.401
+Guatemala,2009,0.53
+Guyana,2009,
+Haiti,2009,0.615
+Honduras,2009,0.478
+Mexico,2009,0.415
+Nicaragua,2009,0.488
+Panama,2009,0.48
+Paraguay,2009,0.484
+Peru,2009,0.403
+Suriname,2009,0.47
+Uruguay,2009,0.324
+Argentina,2010,0.37
+Belize,2010,0.406
+Brazil,2010,0.447
+Chile,2010,0.35
+Colombia,2010,0.454
+Costa Rica,2010,0.315
+Cuba,2010,0.33
+Dominican Republic,2010,0.479
+Ecuador,2010,0.431
+El Salvador,2010,0.398
+Guatemala,2010,0.526
+Guyana,2010,
+Haiti,2010,0.613
+Honduras,2010,0.473
+Mexico,2010,0.418
+Nicaragua,2010,0.478
+Panama,2010,0.482
+Paraguay,2010,0.483
+Peru,2010,0.396
+Suriname,2010,0.516
+Uruguay,2010,0.318
+Argentina,2011,0.364
+Belize,2011,0.409
+Brazil,2011,0.446
+Chile,2011,0.335
+Colombia,2011,0.453
+Costa Rica,2011,0.307
+Cuba,2011,0.329
+Dominican Republic,2011,0.477
+Ecuador,2011,0.429
+El Salvador,2011,0.398
+Guatemala,2011,0.527
+Guyana,2011,
+Haiti,2011,0.626
+Honduras,2011,0.472
+Mexico,2011,0.414
+Nicaragua,2011,0.434
+Panama,2011,0.482
+Paraguay,2011,0.479
+Peru,2011,0.408
+Suriname,2011,0.494
+Uruguay,2011,0.325
+Argentina,2012,0.353
+Belize,2012,0.384
+Brazil,2012,0.441
+Chile,2012,0.327
+Colombia,2012,0.452
+Costa Rica,2012,0.301
+Cuba,2012,0.321
+Dominican Republic,2012,0.472
+Ecuador,2012,0.424
+El Salvador,2012,0.381
+Guatemala,2012,0.536
+Guyana,2012,
+Haiti,2012,0.631
+Honduras,2012,0.463
+Mexico,2012,0.391
+Nicaragua,2012,0.426
+Panama,2012,0.479
+Paraguay,2012,0.463
+Peru,2012,0.405
+Suriname,2012,0.489
+Uruguay,2012,0.324
+Argentina,2013,0.352
+Belize,2013,0.401
+Brazil,2013,0.445
+Chile,2013,0.308
+Colombia,2013,0.449
+Costa Rica,2013,0.293
+Cuba,2013,0.312
+Dominican Republic,2013,0.47
+Ecuador,2013,0.408
+El Salvador,2013,0.38
+Guatemala,2013,0.53
+Guyana,2013,
+Haiti,2013,0.629
+Honduras,2013,0.454
+Mexico,2013,0.39
+Nicaragua,2013,0.425
+Panama,2013,0.475
+Paraguay,2013,0.443
+Peru,2013,0.404
+Suriname,2013,0.493
+Uruguay,2013,0.326
+Argentina,2014,0.347
+Belize,2014,0.413
+Brazil,2014,0.441
+Chile,2014,0.291
+Colombia,2014,0.422
+Costa Rica,2014,0.303
+Cuba,2014,0.31
+Dominican Republic,2014,0.47
+Ecuador,2014,0.396
+El Salvador,2014,0.382
+Guatemala,2014,0.526
+Guyana,2014,
+Haiti,2014,0.627
+Honduras,2014,0.438
+Mexico,2014,0.388
+Nicaragua,2014,0.431
+Panama,2014,0.424
+Paraguay,2014,0.449
+Peru,2014,0.393
+Suriname,2014,0.489
+Uruguay,2014,0.326
+Argentina,2015,0.338
+Belize,2015,0.429
+Brazil,2015,0.436
+Chile,2015,0.287
+Colombia,2015,0.417
+Costa Rica,2015,0.282
+Cuba,2015,0.307
+Dominican Republic,2015,0.466
+Ecuador,2015,0.391
+El Salvador,2015,0.378
+Guatemala,2015,0.529
+Guyana,2015,
+Haiti,2015,0.625
+Honduras,2015,0.432
+Mexico,2015,0.379
+Nicaragua,2015,0.431
+Panama,2015,0.419
+Paraguay,2015,0.452
+Peru,2015,0.391
+Suriname,2015,0.442
+Uruguay,2015,0.29
+Argentina,2016,0.333
+Belize,2016,0.44
+Brazil,2016,0.432
+Chile,2016,0.267
+Colombia,2016,0.414
+Costa Rica,2016,0.278
+Cuba,2016,0.307
+Dominican Republic,2016,0.452
+Ecuador,2016,0.386
+El Salvador,2016,0.37
+Guatemala,2016,0.508
+Guyana,2016,
+Haiti,2016,0.84
+Honduras,2016,0.428
+Mexico,2016,0.37
+Nicaragua,2016,0.424
+Panama,2016,0.416
+Paraguay,2016,0.44
+Peru,2016,0.37
+Suriname,2016,0.425
+Uruguay,2016,0.284
+Argentina,2017,0.321
+Belize,2017,0.464
+Brazil,2017,0.422
+Chile,2017,0.249
+Colombia,2017,0.417
+Costa Rica,2017,0.273
+Cuba,2017,0.307
+Dominican Republic,2017,0.449
+Ecuador,2017,0.389
+El Salvador,2017,0.37
+Guatemala,2017,0.509
+Guyana,2017,
+Haiti,2017,0.628
+Honduras,2017,0.427
+Mexico,2017,0.372
+Nicaragua,2017,0.424
+Panama,2017,0.412
+Paraguay,2017,0.441
+Peru,2017,0.365
+Suriname,2017,0.417
+Uruguay,2017,0.26
+Argentina,2018,0.301
+Belize,2018,0.466
+Brazil,2018,0.401
+Chile,2018,0.215
+Colombia,2018,0.41
+Costa Rica,2018,0.249
+Cuba,2018,0.303
+Dominican Republic,2018,0.45
+Ecuador,2018,0.391
+El Salvador,2018,0.368
+Guatemala,2018,0.509
+Guyana,2018,0.444
+Haiti,2018,0.629
+Honduras,2018,0.435
+Mexico,2018,0.365
+Nicaragua,2018,0.423
+Panama,2018,0.404
+Paraguay,2018,0.44
+Peru,2018,0.365
+Suriname,2018,0.412
+Uruguay,2018,0.254
+Argentina,2019,0.283
+Belize,2019,0.461
+Brazil,2019,0.398
+Chile,2019,0.195
+Colombia,2019,0.411
+Costa Rica,2019,0.234
+Cuba,2019,0.304
+Dominican Republic,2019,0.437
+Ecuador,2019,0.388
+El Salvador,2019,0.358
+Guatemala,2019,0.5
+Guyana,2019,0.439
+Haiti,2019,0.625
+Honduras,2019,0.445
+Mexico,2019,0.366
+Nicaragua,2019,0.421
+Panama,2019,0.392
+Paraguay,2019,0.436
+Peru,2019,0.367
+Suriname,2019,0.4
+Uruguay,2019,0.256
+Argentina,2020,0.285
+Belize,2020,0.469
+Brazil,2020,0.411
+Chile,2020,0.182
+Colombia,2020,0.421
+Costa Rica,2020,0.231
+Cuba,2020,0.303
+Dominican Republic,2020,0.431
+Ecuador,2020,0.373
+El Salvador,2020,0.359
+Guatemala,2020,0.48
+Guyana,2020,0.434
+Haiti,2020,0.623
+Honduras,2020,0.436
+Mexico,2020,0.368
+Nicaragua,2020,0.418
+Panama,2020,0.377
+Paraguay,2020,0.435
+Peru,2020,0.373
+Suriname,2020,0.399
+Uruguay,2020,0.235
+Argentina,2021,0.272
+Belize,2021,0.436
+Brazil,2021,0.405
+Chile,2021,0.119
+Colombia,2021,0.42
+Costa Rica,2021,0.216
+Cuba,2021,0.298
+Dominican Republic,2021,0.423
+Ecuador,2021,0.366
+El Salvador,2021,0.369
+Guatemala,2021,0.467
+Guyana,2021,0.432
+Haiti,2021,0.621
+Honduras,2021,0.417
+Mexico,2021,0.365
+Nicaragua,2021,0.412
+Panama,2021,0.381
+Paraguay,2021,0.432
+Peru,2021,0.342
+Suriname,2021,0.394
+Uruguay,2021,0.221
+Argentina,2022,0.262
+Belize,2022,0.436
+Brazil,2022,0.39
+Chile,2022,0.114
+Colombia,2022,0.395
+Costa Rica,2022,0.209
+Cuba,2022,0.297
+Dominican Republic,2022,0.422
+Ecuador,2022,0.364
+El Salvador,2022,0.366
+Guatemala,2022,0.48
+Guyana,2022,0.431
+Haiti,2022,0.619
+Honduras,2022,0.427
+Mexico,2022,0.361
+Nicaragua,2022,0.408
+Panama,2022,0.38
+Paraguay,2022,0.431
+Peru,2022,0.341
+Suriname,2022,0.392
+Uruguay,2022,0.218
+Argentina,2023,0.264
+Belize,2023,0.428
+Brazil,2023,0.39
+Chile,2023,0.102
+Colombia,2023,0.393
+Costa Rica,2023,0.217
+Cuba,2023,0.296
+Dominican Republic,2023,0.417
+Ecuador,2023,0.358
+El Salvador,2023,0.362
+Guatemala,2023,0.48
+Guyana,2023,0.427
+Haiti,2023,0.618
+Honduras,2023,0.437
+Mexico,2023,0.358
+Nicaragua,2023,0.408
+Panama,2023,0.374
+Paraguay,2023,0.412
+Peru,2023,0.34
+Suriname,2023,0.391
+Uruguay,2023,0.218

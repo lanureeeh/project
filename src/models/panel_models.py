@@ -13,7 +13,8 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-from linearmodels import PanelOLS, PanelIV
+from linearmodels.panel import PanelOLS
+from linearmodels.iv import IV2SLS
 from linearmodels.panel import compare
 import statsmodels.api as sm
 from statsmodels.tools import add_constant
@@ -59,64 +60,64 @@ def run_fe(df, y='lnpovhead', controls=None):
 
 def run_iv_fe(df, y='lnpovhead', instruments=None):
     """
-    Run an instrumental variables fixed effects panel regression model.
-    
-    The model uses lagged financial inclusion indicators as instruments.
-    
+    Run an IV two‐stage least squares with entity and time fixed effects,
+    using linearmodels.iv.IV2SLS.
+
     Args:
         df (pd.DataFrame): Panel dataset with MultiIndex (entity, time)
         y (str): Dependent variable name
         instruments (list): List of instrumental variables
-        
+
     Returns:
-        PanelIVResults: Regression results object
+        IVResults: linearmodels IVResults object
     """
-    # Set default instruments if not provided (assuming these exist in the data)
+    # 1) Default instruments: any lagged financial-inclusion proxies ending in "lag1"
     if instruments is None:
-        # Look for typical financial inclusion indicators with lag1
-        potential_instruments = [col for col in df.columns if any(x in col.lower() for x in 
-                                                              ['mobile', 'atm', 'branch', 'account']) 
-                                and 'lag1' in col.lower()]
-        
-        if not potential_instruments:
-            raise ValueError("No default instruments found in the data. Please specify instruments.")
-        
-        instruments = potential_instruments[:3]  # Use the first three found
-    
-    # Set default endogenous and exogenous variables
-    endog_vars = ['fi_index']  # Financial inclusion index (assumed to exist)
-    exog_vars = ['lngovt', 'lntradeopen', 'ruleoflaw']  # Control variables
-    
-    # Check if the endogenous variable exists
-    if endog_vars[0] not in df.columns:
-        potential_endog = [col for col in df.columns if any(x in col.lower() for x in 
-                                                         ['fi', 'financial', 'inclusion'])]
-        if potential_endog:
-            endog_vars = [potential_endog[0]]
-        else:
-            raise ValueError(f"Endogenous variable {endog_vars[0]} not found in data")
-    
-    # Ensure the DataFrame has proper MultiIndex
+        potential = [
+            col for col in df.columns
+            if any(x in col.lower() for x in ['mobile','atm','branch','account'])
+            and 'lag1' in col.lower()
+        ]
+        if not potential:
+            raise ValueError("No default instruments found. Please specify.")
+        instruments = potential[:3]
+
+    # 2) Endogenous and exogenous regressors
+    endog_var = 'fi_index'
+    if endog_var not in df.columns:
+        cand = [c for c in df.columns if 'fi' in c.lower()]
+        if not cand:
+            raise ValueError(f"Endog {endog_var} not in data.")
+        endog_var = cand[0]
+    exog_vars = ['lngovt', 'lntradeopen', 'ruleoflaw']
+    exog_vars = [x for x in exog_vars if x in df.columns]
+
+    # 3) Bring entity & time back into columns
     if not isinstance(df.index, pd.MultiIndex):
-        try:
-            # Assume Country/ISO3 and Year columns exist
-            entity_col = 'Country' if 'Country' in df.columns else 'ISO3'
-            df = df.set_index([entity_col, 'Year'])
-        except Exception as e:
-            raise ValueError(f"DataFrame must have MultiIndex or Country/ISO3 and Year columns: {e}")
-    
-    # Prepare the data
-    formula = f"{y} ~ 1 + {' + '.join(exog_vars)} + [{' + '.join(endog_vars)} ~ {' + '.join(instruments)}]"
-    
-    # Run the model
-    mod = PanelIV.from_formula(formula, df, entity_effects=True, time_effects=True)
-    res = mod.fit(cov_type='clustered', cluster_entity=True)
-    
-    # Print summary
-    print(f"IV Fixed Effects Model Results (Dependent Variable: {y})")
-    print("=" * 80)
+        ent = 'Country' if 'Country' in df.columns else 'ISO3'
+        df = df.set_index([ent, 'Year'])
+    df_iv = df.reset_index().copy()
+    ent_col, time_col = df_iv.columns[0], df_iv.columns[1]
+
+    # 4) Build formula, adding C(entity)+C(time) for FE, plus IV block [endog ~ instruments]
+    fe_terms = f" + C({ent_col}) + C({time_col})"
+    formula = (
+        f"{y} ~ 1 + {' + '.join(exog_vars)}"
+        f"{fe_terms} + [{endog_var} ~ {' + '.join(instruments)}]"
+    )
+
+    # 5) Fit IV2SLS
+    mod = IV2SLS.from_formula(formula, data=df_iv)
+    # cluster standard errors by entity
+    res = mod.fit(
+        cov_type='cluster',
+        cov_config={'clusters': df_iv[ent_col].values}
+    )
+
+    # 6) Output
+    print(f"IV2SLS FE‐IV Model Results ({y})")
+    print("="*80)
     print(res.summary)
-    
     return res
 
 def run_interaction(df, modifier, y='lnpovhead'):

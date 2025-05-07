@@ -17,6 +17,9 @@ import sys
 import numpy as np
 from pathlib import Path
 import warnings
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.preprocessing import StandardScaler
+from sklearn.cluster import KMeans
 
 # Suppress pandas warnings
 warnings.filterwarnings("ignore", category=pd.errors.SettingWithCopyWarning)
@@ -724,6 +727,15 @@ def merge_datasets():
                         if pd.notna(val):
                             merged_data.loc[mask, col] = val
     
+    # Fill missing data for recent years (2003-2023)
+    print("\nPerforming missing data imputation for years 2003-2023...")
+    try:
+        merged_data = fill_missing_data(merged_data)
+        print("Data imputation completed successfully.")
+    except Exception as e:
+        print(f"Warning: Error during data imputation: {e}")
+        print("Continuing with original dataset...")
+    
     # Save the merged dataset
     merged_data.to_csv('data/processed/merged_dataset_1975_2024.csv', index=False)
     print("Merged dataset saved to 'data/processed/merged_dataset_1975_2024.csv'")
@@ -863,6 +875,203 @@ def clean_instruments_data():
     # 9. Save result
     df_lagged.to_csv('data/interim/Instruments_FII_lagged.csv', index=False)
     print("Saved lagged instrument data to data/interim/Instruments_FII_lagged.csv")
+
+
+def fill_missing_data(merged_data):
+    """
+    Fill missing data in the merged dataset for years 2003-2023 using:
+    1. Linear interpolation for isolated missing points
+    2. Forward and backward fill for small gaps
+    3. KNN imputation with similar country clusters for large blocks of missing data
+    
+    Args:
+        merged_data (pd.DataFrame): The merged dataset with missing values
+        
+    Returns:
+        pd.DataFrame: Dataset with filled missing values
+    """
+    print("Filling missing data for years 2003-2023...")
+    
+    # Filter for years 2003-2023
+    recent_data = merged_data[(merged_data['Year'] >= 2003) & (merged_data['Year'] <= 2023)].copy()
+    
+    # Get list of target countries and numerical columns
+    countries = recent_data['Country'].unique()
+    numerical_cols = recent_data.select_dtypes(include=['float64', 'int64']).columns.tolist()
+    numerical_cols = [col for col in numerical_cols if col != 'Year']  # Exclude Year
+    
+    print(f"Processing {len(numerical_cols)} variables for {len(countries)} countries...")
+    
+    # 1. Linear interpolation for each country and each variable
+    for country in countries:
+        country_data = recent_data[recent_data['Country'] == country].sort_values('Year')
+        country_idx = country_data.index
+        
+        for col in numerical_cols:
+            # Count consecutive NaN values to determine the gap size
+            is_na = country_data[col].isna()
+            
+            # Find runs of missing values
+            if len(is_na) > 1:  # Make sure array has at least 2 elements
+                # Handle the case where the first element is missing
+                first_is_missing = np.array([is_na.iloc[0]])
+                # Handle transitions from not-missing to missing
+                transitions = ~is_na.iloc[:-1].values & is_na.iloc[1:].values
+                run_starts = np.where(np.concatenate([first_is_missing & np.array([True]), transitions]))[0]
+                
+                # Handle the case where the last element is missing
+                last_is_missing = np.array([is_na.iloc[-1]])
+                # Handle transitions from missing to not-missing
+                transitions = is_na.iloc[:-1].values & ~is_na.iloc[1:].values
+                run_ends = np.where(np.concatenate([transitions, last_is_missing & np.array([True])]))[0]
+                
+                if len(run_starts) > 0 and len(run_ends) > 0:
+                    # Calculate gap sizes
+                    gap_sizes = run_ends - run_starts + 1
+                    
+                    # Step 1: Apply linear interpolation for small gaps (1-2 missing values)
+                    if not country_data[col].isna().all() and country_data[col].notna().sum() >= 2:
+                        # Linear interpolation only for gaps of size 1-2
+                        country_data.loc[country_idx, col] = country_data.loc[country_idx, col].interpolate(method='linear', limit=2)
+                    
+                    # Step 2: Apply forward and backward fill for remaining small gaps
+                    if not country_data[col].isna().all():
+                        # Forward/backward fill for small gaps after interpolation
+                        country_data.loc[country_idx, col] = country_data.loc[country_idx, col].ffill(limit=2)  # Forward fill
+                        country_data.loc[country_idx, col] = country_data.loc[country_idx, col].bfill(limit=2)  # Backward fill
+            else:
+                # For very short series or all-missing data, just apply generic interpolation if possible
+                if not country_data[col].isna().all() and country_data[col].notna().sum() >= 2:
+                    country_data.loc[country_idx, col] = country_data.loc[country_idx, col].interpolate(method='linear', limit=2)
+                    country_data.loc[country_idx, col] = country_data.loc[country_idx, col].ffill(limit=2)
+                    country_data.loc[country_idx, col] = country_data.loc[country_idx, col].bfill(limit=2)
+            
+        # Update the main dataframe with interpolated values
+        recent_data.loc[country_idx] = country_data
+        
+    # 3. KNN imputation for large blocks of missing data
+    print("Applying KNN imputation for remaining missing values...")
+    
+    # Create country profiles for clustering
+    # First, aggregate data across years to create country profiles
+    country_profiles = recent_data.groupby('Country')[numerical_cols].mean()
+    
+    # Replace any remaining NaN values with column means to ensure no NaN values for clustering
+    # First calculate column means, replacing NaN with 0 if all values are NaN
+    col_means = country_profiles.mean().fillna(0)
+    
+    # Fill NaN values with column means
+    country_profiles_filled = country_profiles.fillna(col_means)
+    
+    # Make sure there are no NaN values left
+    if country_profiles_filled.isna().any().any():
+        print("Warning: Still have NaN values after filling. Using simple imputation instead.")
+        # For each country and column with missing data, use simpler imputation
+        for country in countries:
+            country_mask = recent_data['Country'] == country
+            for col in numerical_cols:
+                if recent_data.loc[country_mask, col].isna().any():
+                    # Use global mean for this column
+                    col_mean = recent_data[col].mean()
+                    if pd.isna(col_mean):  # If even the global mean is NaN
+                        col_mean = 0  # Use 0 as a last resort
+                    # Fill missing values with the global mean
+                    recent_data.loc[country_mask & recent_data[col].isna(), col] = col_mean
+    else:
+        try:
+            # Standardize the data for clustering
+            scaler = StandardScaler()
+            scaled_profiles = scaler.fit_transform(country_profiles_filled)
+            
+            # Determine optimal number of clusters (k) - using simple rule of thumb: sqrt(n/2)
+            k = max(2, int(np.sqrt(len(countries)/2)))
+            
+            # Apply K-means clustering
+            kmeans = KMeans(n_clusters=k, random_state=42)
+            clusters = kmeans.fit_predict(scaled_profiles)
+            
+            # Add cluster labels to country profiles
+            country_profiles_filled['cluster'] = clusters
+            
+            # Use KNN imputation within each cluster
+            for col in numerical_cols:
+                # Skip if no missing values in this column
+                if not recent_data[col].isna().any():
+                    continue
+                    
+                # For each country with missing values in this column
+                for country in countries:
+                    country_mask = recent_data['Country'] == country
+                    years_with_missing = recent_data[country_mask & recent_data[col].isna()]['Year'].tolist()
+                    
+                    if not years_with_missing:
+                        continue
+                        
+                    # Get the cluster this country belongs to
+                    cluster_id = country_profiles_filled.loc[country, 'cluster']
+                    
+                    # Get countries in the same cluster
+                    similar_countries = country_profiles_filled[country_profiles_filled['cluster'] == cluster_id].index.tolist()
+                    
+                    # Prepare training data from similar countries (including this country's non-missing values)
+                    train_data = recent_data[
+                        (recent_data['Country'].isin(similar_countries)) & 
+                        (recent_data[col].notna())
+                    ][['Year', col]].copy()
+                    
+                    # If there's not enough training data, expand to include all countries
+                    if len(train_data) < 5:
+                        train_data = recent_data[recent_data[col].notna()][['Year', col]].copy()
+                    
+                    # Skip if still not enough training data
+                    if len(train_data) < 3:
+                        # Use mean of the column from similar countries
+                        similar_countries_mean = recent_data[
+                            recent_data['Country'].isin(similar_countries)
+                        ][col].mean()
+                        
+                        if pd.notna(similar_countries_mean):
+                            recent_data.loc[country_mask & recent_data[col].isna(), col] = similar_countries_mean
+                        continue
+                        
+                    # Train KNN regressor
+                    X_train = train_data[['Year']].values
+                    y_train = train_data[col].values
+                    
+                    knn = KNeighborsRegressor(n_neighbors=min(3, len(train_data)), weights='distance')
+                    knn.fit(X_train, y_train)
+                    
+                    # Predict missing values
+                    X_missing = recent_data.loc[country_mask & recent_data[col].isna(), ['Year']].values
+                    if len(X_missing) > 0:
+                        predictions = knn.predict(X_missing)
+                        recent_data.loc[country_mask & recent_data[col].isna(), col] = predictions
+        except Exception as e:
+            print(f"Warning: Error in KNN imputation: {e}")
+            print("Falling back to simple mean imputation...")
+            # Use simple mean imputation as fallback
+            for country in countries:
+                country_mask = recent_data['Country'] == country
+                for col in numerical_cols:
+                    if recent_data.loc[country_mask, col].isna().any():
+                        # Use global mean for this column
+                        col_mean = recent_data[col].mean()
+                        if pd.isna(col_mean):  # If even the global mean is NaN
+                            col_mean = 0  # Use 0 as a last resort
+                        # Fill missing values with the global mean
+                        recent_data.loc[country_mask & recent_data[col].isna(), col] = col_mean
+    
+    # Update the original dataframe
+    merged_data.loc[recent_data.index] = recent_data
+    
+    # Final count of missing values
+    missing_values = merged_data[(merged_data['Year'] >= 2003) & (merged_data['Year'] <= 2023)][numerical_cols].isna().sum()
+    print(f"Remaining missing values in 2003-2023 period after imputation:")
+    for col, count in missing_values.items():
+        if count > 0:
+            print(f"  - {col}: {count}")
+            
+    return merged_data
 
 
 def main():

@@ -9,8 +9,16 @@ import pandas as pd
 import numpy as np
 from pathlib import Path
 import logging
+import sys
 
-from src.data.data_cleaning import main as run_raw_cleaning, merge_datasets
+# Add the project root to the path for direct script execution
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+
+try:
+    from src.data.data_cleaning import main as run_raw_cleaning, merge_datasets
+except ImportError:
+    # Try relative import for direct script execution
+    from data_cleaning import main as run_raw_cleaning, merge_datasets
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -254,6 +262,28 @@ def transform_variables(df):
             
         'Inflation, consumer prices (annual %)': 
             ('lninflation', lambda x: np.log1p(np.abs(x)) * np.sign(x)),  # Log transformation with sign preservation
+            
+        # Transformations for lagged variables - directly from merged dataset
+        'Access to electricity (% of population) (lag 5)': 
+            ('electricity_lag5', lambda x: x),  # Keep as is
+            
+        'Account ownership at a financial institution or with a mobile-money-service provider (% of population ages 15+) (lag 5)': 
+            ('account_ownership_lag5', lambda x: x),  # Keep as is
+            
+        'Commercial bank branches (per 100,000 adults) (lag 7)': 
+            ('bank_branches_lag7', lambda x: x),  # Keep as is
+            
+        'Domestic credit to private sector (% of GDP) (lag 7)': 
+            ('domestic_credit_lag7', lambda x: x),  # Keep as is
+            
+        'Individuals using the Internet (% of population) (lag 4)': 
+            ('internet_users_lag4', lambda x: x),  # Keep as is
+            
+        'Mobile cellular subscriptions (per 100 people) (lag 4)': 
+            ('mobile_subscriptions_lag4', lambda x: x),  # Keep as is
+            
+        'Urban population (% of total population) (lag 5)': 
+            ('urban_population_lag5', lambda x: x),  # Keep as is
     }
     
     # Create copies of variables with transformations
@@ -316,7 +346,11 @@ def filter_dataset(df):
         'Country', 'Year',
         'gdpgrowth', 'gini', 'wealth', 'gii', 'ruleoflaw', 
         'lnpovhead215', 'lngovt', 'lntradeopen',
-        'fii', 'lninflation', 'lnenrollment'
+        'fii', 'lninflation', 'lnenrollment',
+        # Include the lagged variables
+        'electricity_lag5', 'account_ownership_lag5', 'bank_branches_lag7',
+        'domestic_credit_lag7', 'internet_users_lag4', 'mobile_subscriptions_lag4',
+        'urban_population_lag5'
     ]
     
     # Ensure 'gii' is included in the columns to keep
@@ -336,6 +370,14 @@ def filter_dataset(df):
     # Log GII info
     gii_count = final_df['gii'].notna().sum()
     logger.info(f"GII values after filtering: {gii_count} out of {len(final_df)} ({gii_count/len(final_df):.2%})")
+    
+    # Log lagged variables info
+    for col in ['electricity_lag5', 'account_ownership_lag5', 'bank_branches_lag7',
+                'domestic_credit_lag7', 'internet_users_lag4', 'mobile_subscriptions_lag4',
+                'urban_population_lag5']:
+        if col in final_df.columns:
+            count = final_df[col].notna().sum()
+            logger.info(f"{col} values: {count} out of {len(final_df)} ({count/len(final_df):.2%})")
     
     logger.info(f"Final dataset: {final_df.shape[0]} rows and {final_df.shape[1]} columns")
     

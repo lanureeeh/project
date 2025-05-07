@@ -439,7 +439,7 @@ def merge_datasets():
     interim_files = os.listdir('data/interim')
     print("Merging the following datasets:")
     for f in interim_files:
-        if f.endswith('_cleaned.csv'):
+        # if f.endswith('_cleaned.csv'):
             print(f"  - {f}")
     
     # Initialize empty DataFrames
@@ -449,6 +449,8 @@ def merge_datasets():
     wid = pd.DataFrame()
     gii = pd.DataFrame()
     instruments = pd.DataFrame()
+    fi_index = pd.DataFrame()
+    instruments_fii = pd.DataFrame()
     
     # Read all cleaned datasets if they exist
     if 'FAS_cleaned.csv' in interim_files:
@@ -493,8 +495,22 @@ def merge_datasets():
         except Exception as e:
             print(f"Error loading Instruments data: {e}")
     
+    if 'FI_index.csv' in interim_files:
+        try:
+            fi_index = pd.read_csv('data/interim/FI_index.csv')
+            print(f"Loaded FI_index data: {fi_index.shape}")
+        except Exception as e:
+            print(f"Error loading FI_index data: {e}")
+    
+    if 'Instruments_FII_lagged.csv' in interim_files:
+        try:
+            instruments_fii = pd.read_csv('data/interim/Instruments_FII_lagged.csv')
+            print(f"Loaded Instruments_FII data: {instruments_fii.shape}")
+        except Exception as e:
+            print(f"Error loading Instruments_FII_lagged data: {e}")
+
     # Check if any datasets were loaded
-    if all(df.empty for df in [fas, wgi, wdi, wid, gii, instruments]):
+    if all(df.empty for df in [fas, wgi, wdi, wid, gii, instruments, fi_index, instruments_fii]):
         print("No datasets available for merging. Exiting.")
         return
     
@@ -531,6 +547,14 @@ def merge_datasets():
     merged_data['Rule of Law - estimate'] = float('nan')
     merged_data['Rule of Law - pctrank'] = float('nan')
     merged_data['Inequality Index'] = float('nan')
+    # merged_data['fi_index'] = float('nan')
+    # merged_data['Access to electricity (% of population)'] = float('nan')
+    # merged_data['Domestic credit to private sector (% of GDP)'] = float('nan')
+    # merged_data['Commercial bank branches (per 100,000 adults)'] = float('nan')
+    # merged_data['Urban population (% of total population)'] = float('nan')
+    # merged_data['Account ownership at a financial institution or with a mobile-money-service provider (% of population ages 15+)']  = float('nan')
+    # merged_data['Mobile cellular subscriptions (per 100 people)'] = float('nan')
+    # merged_data['Individuals using the Internet (% of population)'] = float('nan')
     
     # Add Gender Inequality Index if available
     if not gii.empty:
@@ -540,6 +564,18 @@ def merge_datasets():
     if not instruments.empty:
         merged_data['Poverty Rate $3.65'] = float('nan')
     
+    # Add FI index columns
+    if not fi_index.empty:
+        for col in fi_index.columns:
+            if col not in ('COUNTRY', 'year'):
+                merged_data[col] = float('nan')
+
+    # Add FII_instrument columns
+    if not instruments_fii.empty:
+        for col in instruments_fii.columns:
+            if col not in ('Unnamed: 0', 'Country Name', 'year'):
+                merged_data[col] = float('nan')
+
     print("Created empty dataset with target variables...")
     
     # Add data from WDI dataset (contains most of the economic indicators)
@@ -652,6 +688,34 @@ def merge_datasets():
             except (ValueError, TypeError):
                 # If conversion fails, leave as NaN
                 pass
+
+    # New: Add FI index data
+    if not fi_index.empty:
+        print("Adding FI Index data...")
+        for _, row in fi_index.iterrows():
+            country = row['COUNTRY']
+            year = int(row['year']) if str(row['year']).isdigit() else None
+            if country in target_countries and year in years:
+                mask = (merged_data['Country'] == country) & (merged_data['Year'] == year)
+                for col in fi_index.columns:
+                    if col not in ('COUNTRY', 'year'):
+                        val = row[col]
+                        if pd.notna(val):
+                            merged_data.loc[mask, col] = val
+        
+     # New: Add FII instruments data
+    if not instruments_fii.empty:
+        print("Adding Instruments_FII data...")
+        for _, row in instruments_fii.iterrows():
+            country = row['Country Name']
+            year = int(row['year']) if str(row['year']).isdigit() else None
+            if country in target_countries and year in years:
+                mask = (merged_data['Country'] == country) & (merged_data['Year'] == year)
+                for col in instruments_fii.columns:
+                    if col not in ('Unnamed: 0', 'Country Name', 'year'):
+                        val = row[col]
+                        if pd.notna(val):
+                            merged_data.loc[mask, col] = val
     
     # Save the merged dataset
     merged_data.to_csv('data/processed/merged_dataset_1975_2024.csv', index=False)
@@ -659,155 +723,139 @@ def merge_datasets():
 
 
 def process_financial_inclusion_index():
-    """
-    Process Financial Inclusion Index calculation.
-    Adapted from FI Index.ipynb
-    """
-    # This function would contain code from FI Index.ipynb
-    # Since the notebook is empty, this is a placeholder for future implementation
-    print("Financial Inclusion Index processing - placeholder (not implemented yet)")
+    import pandas as pd
+    import numpy as np
+    #from ace_tools import display_dataframe_to_user
 
+    """
+    Compute the Financial Inclusion Index (FII) from the FAS dataset.
+    Read from data/interim/FAS_cleaned.csv
+    Save to data/interim/FI_index.csv
+    """
 
-def clean_instruments_data():
-    """
-    Clean the Instrumental Variables data for FII regression.
-    Read from data/raw/Instruments_FII.csv
-    Save to data/interim/Instruments_FII_cleaned.csv
-    
-    Adapted from Instruments.py
-    
-    Excludes 7 countries with the worst data:
-    Belize, Cuba, Guatemala, Guyana, Haiti, Puerto Rico, Suriname
-    
-    Keeps only the Poverty headcount ratio at $3.65 a day indicator
-    """
-    # Read the instruments data file
-    file_path = 'data/raw/Instruments_FII.csv'
-    
-    try:
-        # First try with UTF-8 encoding
-        print(f"Attempting to read {file_path} with UTF-8 encoding...")
-        df_instruments = pd.read_csv(file_path)
-    except UnicodeDecodeError:
-        try:
-            # If that fails, try with Latin-1 encoding
-            print(f"UTF-8 encoding failed. Attempting with Latin-1 encoding...")
-            df_instruments = pd.read_csv(file_path, encoding='latin1')
-        except Exception as e:
-            # If that also fails, try with Windows-1252 encoding (common for Windows files)
-            print(f"Latin-1 encoding failed. Attempting with Windows-1252 encoding...")
-            try:
-                df_instruments = pd.read_csv(file_path, encoding='cp1252')
-            except Exception as e2:
-                print(f"All encoding attempts failed. Error: {e2}")
-                print("Skipping Instruments processing due to encoding issues.")
-                return
-    
-    print("Instruments_FII.csv - Initial Data:")
-    print(df_instruments.head())
-    
-    # Replace the ".." placeholders with NaN
-    df_instruments.replace('..', np.nan, inplace=True)
-    
-    # Define the list of countries to keep (excluding the 7 with worst data)
-    # Original list: Mexico, Peru, Belize, Costa Rica, El Salvador, Guatemala, 
-    #                Honduras, Nicaragua, Panama, Cuba, Dominican Republic, Haiti, 
-    #                Puerto Rico, Argentina, Bolivia, Brazil, Chile, Colombia, 
-    #                Ecuador, Guyana, Paraguay, Suriname, Uruguay, Venezuela, RB
-    
-    # Excluding: Belize, Cuba, Guatemala, Guyana, Haiti, Puerto Rico, Suriname
-    countries_to_keep = [
-        'Mexico', 'Peru', 'Costa Rica', 'El Salvador', 'Honduras', 
-        'Nicaragua', 'Panama', 'Dominican Republic', 'Argentina', 
-        'Bolivia', 'Brazil', 'Chile', 'Colombia', 'Ecuador', 
-        'Paraguay', 'Uruguay', 'Venezuela, RB'
+    # 1) Load the long‐format dataset
+    file_path = 'data/interim/FAS_cleaned.csv'
+    df_long = pd.read_csv(file_path)
+
+    # 2) Select only the six relevant indicators and focus on per‐adult metrics to avoid duplicates
+    fii_vars = [
+        'Number of automated teller machines (ATMs)',
+        'Number of borrowers, Commercial banks',
+        'Number of commercial bank branches',
+        'Number of deposit accounts, Commercial banks',
+        'Number of depositors, Commercial banks',
+        'Number of loan accounts, Commercial banks'
     ]
-    
-    # Check if 'Country Name' column exists
-    if 'Country Name' not in df_instruments.columns:
-        print("Warning: 'Country Name' column not found in Instruments_FII.csv")
-        # Look for alternative column names
-        possible_country_cols = [col for col in df_instruments.columns if 'country' in col.lower()]
-        if possible_country_cols:
-            print(f"Using '{possible_country_cols[0]}' as country column")
-            df_instruments = df_instruments.rename(columns={possible_country_cols[0]: 'Country Name'})
-        else:
-            print("Could not find a country column. Skipping Instruments processing.")
-            return
-    
-    # Filter data to keep only specified countries
-    instruments_filt = df_instruments[df_instruments['Country Name'].isin(countries_to_keep)]
-    
-    # Check if 'Series Name' column exists
-    if 'Series Name' not in df_instruments.columns:
-        print("Warning: 'Series Name' column not found in Instruments_FII.csv")
-        # Look for alternative column names
-        possible_series_cols = [col for col in df_instruments.columns if 'series' in col.lower()]
-        if possible_series_cols:
-            print(f"Using '{possible_series_cols[0]}' as series column")
-            df_instruments = df_instruments.rename(columns={possible_series_cols[0]: 'Series Name'})
-        else:
-            print("Could not find a series column. Skipping Instruments processing.")
-            return
-    
-    # Keep only Poverty headcount ratio at $3.65 a day
-    poverty_indicator = 'Poverty headcount ratio at $3.65 a day (2017 PPP) (% of population)'
-    
-    if poverty_indicator not in instruments_filt['Series Name'].values:
-        print(f"Warning: '{poverty_indicator}' not found in the data")
-        print("Available indicators:", instruments_filt['Series Name'].unique())
-        print("Skipping Instruments processing.")
-        return
-    
-    instruments_filt = instruments_filt[instruments_filt['Series Name'] == poverty_indicator]
-    
-    print(f"Filtered data to keep only '{poverty_indicator}' for {len(countries_to_keep)} countries")
-    print(f"Removed countries: Belize, Cuba, Guatemala, Guyana, Haiti, Puerto Rico, Suriname")
-    
-    # Renaming the year columns to 4 digits - build mapping for columns from index 4 onward
-    to_rename = {col: col[:4] for col in instruments_filt.columns[4:] if len(col) >= 4}
-    
-    # Apply the renaming in place
-    instruments_filt.rename(columns=to_rename, inplace=True)
-    
-    # Identify year columns (any column that starts with '20' or '19')
-    year_cols = [c for c in instruments_filt.columns if (c.startswith('20') or c.startswith('19'))]
-    
-    if not year_cols:
-        print("Warning: No year columns found in the data")
-        print("Available columns:", instruments_filt.columns.tolist())
-        print("Skipping Instruments processing.")
-        return
-    
-    # Convert those columns to numeric
-    instruments_filt[year_cols] = instruments_filt[year_cols].apply(pd.to_numeric, errors='coerce')
-    
-    # Check data coverage
-    missing_by_country = instruments_filt.groupby('Country Name')[year_cols].apply(lambda g: g.isna().mean() * 100)
-    
-    print("Missing data percentage by country:")
-    print(missing_by_country)
-    
-    # Try to reshape the data to long format for easier analysis
-    try:
-        # Melt the year columns to create a long format
-        id_vars = ['Country Name', 'Series Name']
-        df_long = instruments_filt.melt(
-            id_vars=id_vars,
-            value_vars=year_cols,
-            var_name='Year',
-            value_name='Poverty_Rate'
-        )
-        
-        # Save long format for easier analysis
-        df_long.to_csv('data/interim/Instruments_Poverty_long.csv', index=False)
-        print("Created long format data and saved to 'data/interim/Instruments_Poverty_long.csv'")
-    except Exception as e:
-        print(f"Error creating long format: {e}")
-    
-    # Save the cleaned data
-    instruments_filt.to_csv('data/interim/Instruments_Poverty_cleaned.csv', index=False)
-    print("Instruments_FII.csv cleaning complete. 'data/interim/Instruments_Poverty_cleaned.csv' has been created.")
+    df_sel = df_long[
+        df_long['INDICATOR'].isin(fii_vars) &
+        df_long['TYPE_OF_TRANSFORMATION'].str.contains('adults')
+    ]
+
+    # 3) Pivot to wide format with one row per country‐year
+    df_wide = (
+        df_sel
+        .pivot(index=['COUNTRY', 'year'], columns='INDICATOR', values='value')
+        .reset_index()
+    )
+
+    # 4) Define the function to compute the Financial Inclusion Index
+    def compute_fii(df):
+        # Standardize and cap each indicator to [0,1] using its 95th percentile
+        pct95 = df[fii_vars].quantile(0.95)
+        d_mat = df[fii_vars].divide(pct95).clip(lower=0, upper=1)
+
+        # Weight matrix: 1 if data present, 0 if missing
+        w_mat = df[fii_vars].notna().astype(int)
+
+        # Replace NaNs in standardized data with 0
+        d0_mat = d_mat.fillna(0)
+
+        # Compute per‐row normalizer: √(∑ w_i²)
+        norm_w = np.sqrt((w_mat**2).sum(axis=1))
+
+        # Distance from worst (origin)
+        X1 = np.sqrt((d0_mat**2).sum(axis=1)) / norm_w
+
+        # Inverse distance from ideal (all ones)
+        X2 = 1 - np.sqrt(((w_mat - d0_mat)**2).sum(axis=1)) / norm_w
+
+        # Combine into the final index
+        df['fi_index'] = 0.5 * (X1 + X2)
+        return df
+
+    # 5) Compute the index
+    df_fii = compute_fii(df_wide)
+
+    # 6) Select only the relevant columns
+    df_fii = df_fii[['COUNTRY', 'year', 'fi_index']].copy()
+
+    # 7) Write the results to a CSV file
+    df_fii.to_csv('data/interim/FI_index.csv', index=False)
+    print("Financial Inclusion Index computed and saved to 'FI_index.csv'")
+
+
+
+def clean_instruments_data(): 
+    """
+    Clean the Instruments data.
+    Read from data/raw/Instruments_FII.csv
+    Apply specified lags per indicator.
+    Save to data/interim/Instruments_FII_lagged.csv
+    """
+
+    # 1. Load the raw data
+    file_path = 'data/raw/Instruments_FII.csv'
+    df = pd.read_csv(file_path)
+
+    # 2. Melt to long format
+    df_long = df.melt(
+        id_vars=['Country Name', 'Country Code', 'Series Name', 'Series Code'],
+        var_name='year_raw',
+        value_name='value'
+    )
+
+    # 3. Clean value column
+    df_long['value'] = pd.to_numeric(df_long['value'], errors='coerce')
+
+    # 4. Extract year
+    df_long['year'] = df_long['year_raw'].str.extract(r'(\d{4})').astype(int)
+
+    # 5. Pivot to wide format
+    df_wide = df_long.pivot_table(
+        index=['Country Name', 'year'],
+        columns='Series Name',
+        values='value'
+    )
+    df_wide.columns.name = None
+    df_wide = df_wide.reset_index()
+
+    # 6. Define lags per indicator (years)
+    lags = {
+        "Access to electricity (% of population)": 5,
+        "Account ownership at a financial institution or with a mobile-money-service provider (% of population ages 15+)": 5,
+        "Commercial bank branches (per 100,000 adults)": 7,
+        "Domestic credit to private sector (% of GDP)": 7,
+        "Individuals using the Internet (% of population)": 4,
+        "Mobile cellular subscriptions (per 100 people)": 4,
+        "Urban population (% of total population)": 5
+    }
+
+    # 7. Apply lags
+    for indicator, lag in lags.items():
+        if indicator in df_wide.columns:
+            df_wide[f"{indicator} (lag {lag})"] = (
+                df_wide
+                .groupby('Country Name')[indicator]
+                .shift(lag)
+            )
+
+    # 8. Drop original (non-lagged) columns
+    cols_to_drop = [col for col in lags if col in df_wide.columns]
+    df_lagged = df_wide.drop(columns=cols_to_drop)
+
+    # 9. Save result
+    df_lagged.to_csv('data/interim/Instruments_FII_lagged.csv', index=False)
+    print("Saved lagged instrument data to data/interim/Instruments_FII_lagged.csv")
 
 
 def main():

@@ -10,6 +10,9 @@ import numpy as np
 from pathlib import Path
 import logging
 import sys
+from sklearn.impute import KNNImputer
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.cluster import KMeans
 
 # Add the project root to the path for direct script execution
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
@@ -36,7 +39,8 @@ def build_panel():
     5. Transform variables (logs, renames)
     6. Filter countries and years
     7. Update final dataset with GII values directly
-    8. Save panel dataset
+    8. Impute missing values
+    9. Save panel dataset
     
     Returns:
         pd.DataFrame: The processed panel dataset
@@ -68,7 +72,11 @@ def build_panel():
         logger.info("Adding GII values to final dataset...")
         df = add_gii_values(df, gii_data)
     
-    # Step 8: Save panel dataset
+    # Step 8: Impute missing values
+    logger.info("Imputing missing values...")
+    df = impute_missing_values(df)
+    
+    # Step 9: Save panel dataset
     output_file = 'data/processed/panel_2003_2023.csv'
     logger.info(f"Saving panel dataset to {output_file}...")
     df.to_csv(output_file, index=False)
@@ -306,7 +314,7 @@ def transform_variables(df):
 def filter_dataset(df):
     """
     Filter the dataset to include:
-    - Only specified countries (excluding the 7 with worst data)
+    - Only specified countries (excluding Venezuela and 7 with worst data)
     - Only years 2003-2023
     - Only select columns
     
@@ -331,6 +339,9 @@ def filter_dataset(df):
     }
     
     countries_to_exclude = [iso3_to_country[iso3] for iso3 in excluded_iso3s]
+    
+    # Add Venezuela to the excluded countries
+    countries_to_exclude.append('Venezuela')
     logger.info(f"Excluding countries: {', '.join(countries_to_exclude)}")
     
     # Filter out the excluded countries
@@ -420,6 +431,150 @@ def add_gii_values(df, gii_data):
     logger.info(f"GII values added: {gii_count} out of {len(result_df)} ({gii_count/len(result_df):.2%})")
     
     return result_df
+
+def impute_missing_values(df):
+    """
+    Impute missing values in the panel dataset.
+    
+    Imputation strategy:
+    1. Linear interpolation for small gaps within country time series
+    2. Forward/backward fill for isolated gaps
+    3. KNN imputation based on similar countries for larger blocks
+    
+    Args:
+        df (pd.DataFrame): The panel dataset with missing values
+        
+    Returns:
+        pd.DataFrame: The dataset with imputed values
+    """
+    logger.info("Starting missing value imputation...")
+    
+    # Create a copy to avoid modifying the original
+    imputed_df = df.copy()
+    
+    # Get numeric columns excluding identifiers
+    numeric_cols = imputed_df.select_dtypes(include=[np.number]).columns.tolist()
+    numeric_cols = [col for col in numeric_cols if col not in ['Year']]
+    
+    # Log missing values before imputation
+    missing_before = imputed_df[numeric_cols].isna().sum()
+    logger.info(f"Missing values before imputation:\n{missing_before}")
+    
+    # Step 1: Linear interpolation for each country's time series
+    logger.info("Step 1: Applying linear interpolation for each country...")
+    for country in imputed_df['Country'].unique():
+        country_mask = imputed_df['Country'] == country
+        country_data = imputed_df.loc[country_mask, numeric_cols]
+        
+        # Only interpolate if there are enough non-NaN values
+        for col in numeric_cols:
+            non_null = country_data[col].notna().sum()
+            if non_null >= 2:  # Need at least 2 points for interpolation
+                imputed_df.loc[country_mask, col] = imputed_df.loc[country_mask, col].interpolate(method='linear')
+    
+    # Step 2: Forward fill and backward fill for remaining small gaps
+    logger.info("Step 2: Applying forward and backward fill for isolated gaps...")
+    for country in imputed_df['Country'].unique():
+        country_mask = imputed_df['Country'] == country
+        
+        # Forward fill with limit to avoid filling large blocks
+        imputed_df.loc[country_mask, numeric_cols] = imputed_df.loc[country_mask, numeric_cols].ffill(limit=2)
+        
+        # Backward fill with limit to avoid filling large blocks
+        imputed_df.loc[country_mask, numeric_cols] = imputed_df.loc[country_mask, numeric_cols].bfill(limit=2)
+    
+    # Log missing values after basic imputation
+    missing_after_basic = imputed_df[numeric_cols].isna().sum()
+    logger.info(f"Missing values after basic imputation:\n{missing_after_basic}")
+    
+    # Step 3: KNN imputation for remaining values
+    logger.info("Step 3: Applying KNN imputation based on similar countries...")
+    
+    # Get economic indicator columns for clustering
+    economic_indicators = [col for col in numeric_cols if col not in ['gii']]
+    
+    # Get countries with sufficient data for clustering
+    countries_data = []
+    for country in imputed_df['Country'].unique():
+        country_data = imputed_df[imputed_df['Country'] == country][economic_indicators]
+        if country_data.isna().mean().mean() < 0.5:  # Less than 50% missing values
+            # Calculate mean of each indicator for this country
+            country_means = country_data.mean().to_dict()
+            country_means['Country'] = country
+            countries_data.append(country_means)
+    
+    if len(countries_data) >= 5:  # Need at least 5 countries for meaningful clustering
+        # Create a dataframe of country means
+        countries_df = pd.DataFrame(countries_data)
+        countries_df = countries_df.set_index('Country')
+        
+        # Handle missing values in the clustering data
+        countries_df = countries_df.fillna(countries_df.mean())
+        
+        # Normalize data for clustering
+        scaler = MinMaxScaler()
+        countries_scaled = scaler.fit_transform(countries_df)
+        
+        # Cluster countries into groups (adjust n_clusters based on data)
+        n_clusters = min(5, len(countries_df) // 2)  # Use fewer clusters if data is limited
+        kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+        clusters = kmeans.fit_predict(countries_scaled)
+        
+        # Create cluster mapping
+        country_clusters = dict(zip(countries_df.index, clusters))
+        
+        # Apply KNN imputation within each cluster
+        for cluster_id in range(n_clusters):
+            # Get countries in this cluster
+            cluster_countries = [country for country, cluster in country_clusters.items() if cluster == cluster_id]
+            
+            if len(cluster_countries) >= 3:  # Need at least 3 countries for meaningful KNN
+                # Get data for countries in this cluster
+                cluster_mask = imputed_df['Country'].isin(cluster_countries)
+                cluster_data = imputed_df[cluster_mask].copy()
+                
+                # Create features for KNN: Year and dummy variables for countries
+                X = pd.get_dummies(cluster_data[['Year', 'Country']], columns=['Country'])
+                
+                # For each numeric column with missing values, apply KNN imputation
+                for col in numeric_cols:
+                    if cluster_data[col].isna().any():
+                        # Find rows that need imputation
+                        missing_mask = cluster_data[col].isna()
+                        if missing_mask.sum() > 0 and (~missing_mask).sum() >= 3:  # Ensure enough data points
+                            # Apply KNN imputation (n_neighbors based on cluster size)
+                            n_neighbors = min(5, (~missing_mask).sum() // 2)
+                            imputer = KNNImputer(n_neighbors=n_neighbors)
+                            
+                            # Extract the column to impute and reshape for KNN
+                            y = cluster_data[col].values.reshape(-1, 1)
+                            
+                            # Combine X and y for imputation
+                            X_with_y = np.hstack((X.values, y))
+                            
+                            # Apply imputation
+                            imputed_values = imputer.fit_transform(X_with_y)
+                            
+                            # Update the values in the dataframe
+                            cluster_data[col] = imputed_values[:, -1]
+                
+                # Update the main dataframe with imputed values
+                imputed_df.loc[cluster_mask, numeric_cols] = cluster_data[numeric_cols]
+    
+    # Fill any remaining missing values with global medians as a last resort
+    logger.info("Filling remaining missing values with global medians...")
+    global_medians = imputed_df[numeric_cols].median()
+    imputed_df[numeric_cols] = imputed_df[numeric_cols].fillna(global_medians)
+    
+    # Log missing values after imputation
+    missing_after = imputed_df[numeric_cols].isna().sum()
+    logger.info(f"Missing values after all imputation steps:\n{missing_after}")
+    
+    # Calculate and log imputation percentage
+    imputed_count = missing_before - missing_after
+    logger.info(f"Imputed {imputed_count.sum()} values across {len(numeric_cols)} variables")
+    
+    return imputed_df
 
 def load_additional_datasets(df):
     """

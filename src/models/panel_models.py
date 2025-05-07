@@ -110,8 +110,9 @@ def run_iv_fe(df, y='lnpovhead', instruments=None):
     mod = IV2SLS.from_formula(formula, data=df_iv)
     # cluster standard errors by entity
     res = mod.fit(
-        cov_type='cluster',
-        cov_config={'clusters': df_iv[ent_col].values}
+        cov_type='clustered',
+        cov_config=df_iv[ent_col].values,
+        debiased = True  # or True, if you want the small‐sample adjustment
     )
 
     # 6) Output

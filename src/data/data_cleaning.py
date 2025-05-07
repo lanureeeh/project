@@ -546,7 +546,7 @@ def merge_datasets():
     merged_data['Inflation, consumer prices (annual %)'] = float('nan')
     merged_data['Rule of Law - estimate'] = float('nan')
     merged_data['Rule of Law - pctrank'] = float('nan')
-    merged_data['Inequality Index'] = float('nan')
+    merged_data['Wealth'] = float('nan')
     # merged_data['fi_index'] = float('nan')
     # merged_data['Access to electricity (% of population)'] = float('nan')
     # merged_data['Domestic credit to private sector (% of GDP)'] = float('nan')
@@ -612,19 +612,26 @@ def merge_datasets():
                     if 'pctrank' in wgi.columns and not pd.isna(row['pctrank']):
                         merged_data.loc[mask, 'Rule of Law - pctrank'] = row['pctrank']
     
-    # Add data from WID dataset (Inequality Index)
+    # Add data from WID dataset (Inequality Index, Wealth Accumilation)
     if not wid.empty:
         print("Adding WID data...")
-        for idx, row in wid.iterrows():
-            country = idx
+        # Convert index values to columns if needed
+        if not isinstance(wid.index, pd.RangeIndex):
+            wid = wid.reset_index()
+        
+        for _, row in wid.iterrows():
+            # Get the country name from the appropriate column
+            country = row['Country']
             if country in target_countries:
                 for year in years:
-                    if str(year) in wid.columns:
-                        value = row[str(year)]
+                    year_str = str(year)
+                    if year_str in wid.columns:
+                        value = row[year_str]
                         # Find the corresponding row in merged_data
                         mask = (merged_data['Country'] == country) & (merged_data['Year'] == year)
                         if not pd.isna(value):
-                            merged_data.loc[mask, 'Inequality Index'] = value
+                            merged_data.loc[mask, 'Wealth'] = value
+                            print(f"Added WID data for {country}, {year}: {value}")
     
     # Add data from FAS dataset (if relevant)
     if not fas.empty:

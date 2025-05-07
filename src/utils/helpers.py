@@ -5,78 +5,76 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 import missingno as msno
 
 def plot_missing(df, out_path):
     """
-    Visualize missing data in the DataFrame, with special handling for poverty line variables.
+    Visualize missing data in the DataFrame with a heatmap showing data availability by country and year.
     
-    When both 'lnpovhead' & 'lnpovhead215' exist, they are colored differently in 
-    the missingno matrix and a legend titled "Poverty Lines" is added.
+    If the DataFrame contains panel data with 'Country' and 'Year' columns, it will create a heatmap
+    showing data availability for each country across years for the selected variables.
     
     Args:
-        df (pd.DataFrame): DataFrame to visualize missing values
+        df (pd.DataFrame): DataFrame to visualize missing values, should contain 'Country' and 'Year' columns
         out_path (str): Path to save the figure
         
     Returns:
         None
     """
-    # Make a copy of the DataFrame to avoid modifying the original
-    df_copy = df.copy()
-    
-    # Create a figure with appropriate size
-    plt.figure(figsize=(12, 8))
-    
-    # Check if both poverty variables exist
-    has_both_pov_vars = 'lnpovhead' in df.columns and 'lnpovhead215' in df.columns
-    
-    if has_both_pov_vars:
-        # Get the column positions in the DataFrame
-        cols = list(df.columns)
-        pov365_pos = cols.index('lnpovhead')
-        pov215_pos = cols.index('lnpovhead215')
+    # Check if the DataFrame has Country and Year columns for panel data
+    if 'Country' in df.columns and 'Year' in df.columns:
+        # Identify the variables to visualize (exclude Country and Year)
+        data_vars = [col for col in df.columns if col not in ['Country', 'Year']]
         
-        # Create a custom color map
-        # Default columns will be colored using missingno's default (white/gray)
-        # Poverty variables will use custom colors
-        color_dict = {}
+        if len(data_vars) == 0:
+            print("No data variables found besides Country and Year")
+            return None
         
-        # The rest of the columns will use missingno's default coloring
-        
-        # Create the matrix visualization with custom colors
-        matrix = msno.matrix(df_copy, figsize=(12, 8), color_dict=color_dict)
-        
-        # Customize the plot after it's created
-        # Get the matrix heatmap from the returned object
-        heatmap = matrix.findobj(lambda x: hasattr(x, 'get_facecolors'))[0]
-        
-        # Get the face colors
-        fc = heatmap.get_facecolors()
-        
-        # Change colors for the poverty variables
-        for i in range(len(df)): 
-            # Use blue for lnpovhead (3.65 poverty line)
-            if not pd.isna(df.iloc[i, pov365_pos]):
-                fc[i * len(cols) + pov365_pos] = [0, 0.447, 0.698, 1]  # Blue
+        # For each variable, create a heatmap showing data availability
+        for var in data_vars:
+            # Create a pivot table with countries as rows and years as columns
+            pivot_df = df.pivot_table(
+                index='Country', 
+                columns='Year', 
+                values=var,
+                aggfunc=lambda x: 1.0 if pd.notnull(x).any() else 0.0
+            )
             
-            # Use red for lnpovhead215 (2.15 poverty line)
-            if not pd.isna(df.iloc[i, pov215_pos]):
-                fc[i * len(cols) + pov215_pos] = [0.835, 0.369, 0, 1]  # Red
+            # Create the figure
+            plt.figure(figsize=(15, 10))
+            
+            # Create the heatmap
+            sns.heatmap(
+                pivot_df, 
+                cmap='Blues', 
+                cbar_kws={'label': 'Data Available'},
+                vmin=0, 
+                vmax=1
+            )
+            
+            # Set title and labels
+            title = f"Data Availability for {var.replace('lnpovhead215', 'Poverty headcount ratio at $2.15 a day').replace('lnpovhead', 'Poverty headcount ratio at $3.65 a day')} ({df['Year'].min()}-{df['Year'].max()})"
+            plt.title(title, fontsize=14)
+            plt.xlabel('Year', fontsize=12)
+            plt.ylabel('Country', fontsize=12)
+            plt.tight_layout()
+            
+            # Ensure the directory exists
+            os.makedirs(os.path.dirname(out_path), exist_ok=True)
+            
+            # Create a variable-specific output path
+            var_out_path = out_path.replace('.png', f'_{var}.png')
+            
+            # Save the figure
+            plt.savefig(var_out_path, bbox_inches='tight', dpi=300)
+            plt.close()
         
-        # Set the new face colors
-        heatmap.set_facecolors(fc)
-        
-        # Add a custom legend
-        import matplotlib.patches as mpatches
-        blue_patch = mpatches.Patch(color=[0, 0.447, 0.698, 1], label='$3.65/day poverty line')
-        red_patch = mpatches.Patch(color=[0.835, 0.369, 0, 1], label='$2.15/day poverty line')
-        plt.legend(handles=[blue_patch, red_patch], title="Poverty Lines", 
-                  loc='upper right', bbox_to_anchor=(1.15, 1))
-        
-        plt.tight_layout()
-    else:
-        # If both poverty variables don't exist, use the default missingno matrix
-        msno.matrix(df_copy, figsize=(12, 8))
+        return None
+    
+    # If not a panel dataset, use the default missingno matrix
+    plt.figure(figsize=(12, 8))
+    msno.matrix(df, figsize=(12, 8))
     
     # Ensure the directory exists
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
@@ -85,8 +83,7 @@ def plot_missing(df, out_path):
     plt.savefig(out_path, bbox_inches='tight', dpi=300)
     plt.close()
     
-    # Return None as specified
-    return None 
+    return None
 
 def vif_table(df, cols, out_path="reports/tables/vif.xlsx"):
     """

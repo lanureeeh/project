@@ -64,7 +64,11 @@ def plot_missing(df, out_path):
             os.makedirs(os.path.dirname(out_path), exist_ok=True)
             
             # Create a variable-specific output path
-            var_out_path = out_path.replace('.png', f'_{var}.png')
+            base_path = os.path.splitext(out_path)[0]  # Get the path without extension
+            # Remove any existing instances of the variable name in the base path
+            if f"_{var}" in base_path:
+                base_path = base_path.replace(f"_{var}", "")
+            var_out_path = f"{base_path}_{var}.png"
             
             # Save the figure
             plt.savefig(var_out_path, bbox_inches='tight', dpi=300)

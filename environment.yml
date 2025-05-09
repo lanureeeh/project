@@ -22,3 +22,13 @@ dependencies:
   - black
   - isort
   - flake8
+  - openpyxl
+  - xlrd
+  - pathlib
+  - pip
+  - pip:
+    - janitor
+    - plotly
+    - nbformat
+    - tabulate
+    - watermark

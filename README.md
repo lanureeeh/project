@@ -24,36 +24,48 @@ The analysis integrates data from multiple international sources covering Latin 
 | Gender Inequality Index (GII)      | UNDP       | Gender-based inequalities                 | Gender inequality indices                                                                      |
 | World Inequality Database (WID)    | WID.world  | Income and wealth inequality data         | Gini coefficients, income shares                                                               |
 
-*The $2.15/day poverty line was not used in the final analysis due to significant missing data (see [missing_poverty.png](reports/figures/missing_poverty.png))
-
 ## Project Structure
 
 ```
 ├── data/               # All data files
 │   ├── raw/            # Original, immutable data
-│   ├── interim/        # Intermediate data
-│   └── processed/      # Final, canonical data sets
+│   ├── interim/        # Intermediate data (cleaned individual datasets)
+│   └── processed/      # Final, canonical data sets (merged and panel datasets)
 │
-├── notebooks/          # Jupyter notebooks
-│   ├── eda/            # Exploratory data analysis
-│   └── modeling/       # Modeling notebooks
-│
-├── src/                # Source code
-│   ├── data/           # Data processing scripts
-│   ├── features/       # Feature engineering scripts
-│   ├── models/         # Model training and prediction
-│   └── utils/          # Utility functions
+├── functions/          # Core functionality modules
+│   ├── data_cleaning.py    # Data cleaning and processing functions
+│   ├── build_panel.py      # Panel dataset creation with missing value imputation
+│   ├── panel_models.py     # Econometric models for panel data analysis
+│   └── helpers.py          # Utility functions for visualization and analysis
 │
 ├── reports/            # Generated analysis
-│   ├── figures/        # Generated graphics and figures
-│   ├── slides/         # Presentation materials
-│   └── logs/           # Logs and outputs
+│   └── figures/        # Generated graphics and figures
 │
-├── time_log.md         # Time tracking log
+├── complete_project_notebook.ipynb  # Consolidated analysis notebook
 ├── README.md           # Project description
-├── environment.yml     # Environment configuration
-└── .gitignore          # Git ignore file
+└── environment.yml     # Environment configuration
 ```
+
+## Data Processing Pipeline
+
+The data processing workflow follows these steps:
+
+1. **Raw Data Cleaning**: `data_cleaning.py` cleans individual datasets from different sources and saves them to the interim directory.
+2. **Dataset Merging**: The cleaned datasets are merged into a comprehensive dataset spanning 1975-2024.
+3. **Panel Construction**: `build_panel.py` creates a filtered panel dataset for 2003-2023 with:
+
+   - Variable transformations (log transforms, renamed variables)
+   - Country and time period filtering
+   - Missing value imputation using:
+     - Linear interpolation within country time series
+     - KNN imputation based on similar country clusters
+     - Global median imputation as a last resort
+4. **Model Estimation**: `panel_models.py` provides functions for:
+
+   - Fixed Effects (FE) panel models
+   - Instrumental Variable (IV) estimation
+   - Interaction models with moderator variables
+   - Fixed effects models with time trends
 
 ## Quick-Start Guide
 
@@ -62,16 +74,14 @@ Follow these steps to set up the environment and run the analysis:
 ```bash
 # Create and activate the conda environment
 conda env create -f environment.yml
-conda activate latam-fininc
+conda activate project-env
 
-# Process data and build panel dataset
-python -m src.data.build_panel
+# Process the data pipeline (runs cleaning, merging, and panel creation)
+python -c "from functions.data_cleaning import main; main()"
+python -c "from functions.build_panel import build_panel; build_panel()"
 
-# Build the Financial Inclusion Index
-python -m src.features.build_fii
-
-# Start Jupyter Lab to explore notebooks
-jupyter lab
+# Open the consolidated notebook
+jupyter lab complete_project_notebook.ipynb
 ```
 
 ## Key Findings
@@ -92,8 +102,8 @@ Our analysis reveals several important insights:
 The project employs several econometric approaches:
 
 - Fixed Effects panel models
-- Instrumental Variable estimation
-- Interaction models
-- Threshold regression with bootstrap confidence intervals
+- Instrumental Variable estimation with lagged variables
+- Interaction models to test moderating effects
+- Time trend analysis to account for temporal dynamics
 
-For detailed methodology and results, please refer to the notebooks in the `notebooks/modeling/` directory.
+For detailed methodology and results, please refer to the `complete_project_notebook.ipynb` notebook which contains the consolidated analysis workflow.

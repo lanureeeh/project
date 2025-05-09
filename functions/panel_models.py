@@ -75,7 +75,7 @@ def run_iv_fe(df, y='lnpovhead', instruments=None):
     if instruments is None:
         potential = [
             col for col in df.columns
-            if any(x in col.lower() for x in ['mobile','atm','branch','account'])
+            if any(x in col.lower() for x in ['mobile', 'atm', 'branch', 'account'])
             and 'lag1' in col.lower()
         ]
         if not potential:
@@ -85,7 +85,7 @@ def run_iv_fe(df, y='lnpovhead', instruments=None):
     # 2) Endogenous and exogenous regressors
     endog_var = 'fi_index'
     if endog_var not in df.columns:
-        cand = [c for c in df.columns if 'fi' in c.lower()]
+        cand = [c for c in df.columns if 'fii' in c.lower()]
         if not cand:
             raise ValueError(f"Endog {endog_var} not in data.")
         endog_var = cand[0]
@@ -111,13 +111,13 @@ def run_iv_fe(df, y='lnpovhead', instruments=None):
     # cluster standard errors by entity
     res = mod.fit(
         cov_type='clustered',
-        cov_config=df_iv[ent_col].values,
-        debiased = True  # or True, if you want the small‐sample adjustment
+        clusters=df_iv[ent_col].values,  # Use clusters argument instead of cov_config
+        debiased=True  # Small‐sample adjustment
     )
 
     # 6) Output
     print(f"IV2SLS FE‐IV Model Results ({y})")
-    print("="*80)
+    print("=" * 80)
     print(res.summary)
     return res
 
@@ -139,7 +139,7 @@ def run_interaction(df, modifier, y='lnpovhead'):
     # Check if the financial inclusion variable exists
     if fi_var not in df.columns:
         potential_fi = [col for col in df.columns if any(x in col.lower() for x in 
-                                                      ['fi', 'financial', 'inclusion'])]
+                                                      ['fii', 'financial', 'inclusion'])]
         if potential_fi:
             fi_var = potential_fi[0]
         else:
@@ -272,7 +272,7 @@ def run_fe_trend(df, y='lnpovhead'):
     # Check if the financial inclusion variable exists
     if fi_var not in df_trend.columns:
         potential_fi = [col for col in df_trend.columns if any(x in col.lower() for x in 
-                                                            ['fi', 'financial', 'inclusion'])]
+                                                            ['fii', 'financial', 'inclusion'])]
         if potential_fi:
             fi_var = potential_fi[0]
         else:

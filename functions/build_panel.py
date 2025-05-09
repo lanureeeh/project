@@ -13,12 +13,12 @@ import sys
 from sklearn.impute import KNNImputer
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.cluster import KMeans
-
 # Add the project root to the path for direct script execution
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+if '__file__' in globals():
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
 
 try:
-    from src.data.data_cleaning import main as run_raw_cleaning, merge_datasets
+    from data_cleaning import main as run_raw_cleaning, merge_datasets
 except ImportError:
     # Try relative import for direct script execution
     from data_cleaning import main as run_raw_cleaning, merge_datasets

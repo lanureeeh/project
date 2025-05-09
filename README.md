@@ -24,6 +24,8 @@ The analysis integrates data from multiple international sources covering Latin 
 | Gender Inequality Index (GII)      | UNDP       | Gender-based inequalities                 | Gender inequality indices                                                                      |
 | World Inequality Database (WID)    | WID.world  | Income and wealth inequality data         | Gini coefficients, income shares                                                               |
 
+*The $2.15/day poverty line was not used in the final analysis due to significant missing data.
+
 ## Project Structure
 
 ```
@@ -51,21 +53,37 @@ The analysis integrates data from multiple international sources covering Latin 
 The data processing workflow follows these steps:
 
 1. **Raw Data Cleaning**: `data_cleaning.py` cleans individual datasets from different sources and saves them to the interim directory.
-2. **Dataset Merging**: The cleaned datasets are merged into a comprehensive dataset spanning 1975-2024.
-3. **Panel Construction**: `build_panel.py` creates a filtered panel dataset for 2003-2023 with:
 
+2. **Dataset Merging**: The cleaned datasets are merged into a comprehensive dataset spanning 1975-2024.
+
+3. **Panel Construction**: `build_panel.py` creates a filtered panel dataset for 2003-2023 with:
    - Variable transformations (log transforms, renamed variables)
    - Country and time period filtering
    - Missing value imputation using:
      - Linear interpolation within country time series
      - KNN imputation based on similar country clusters
      - Global median imputation as a last resort
-4. **Model Estimation**: `panel_models.py` provides functions for:
 
+4. **Model Estimation**: `panel_models.py` provides functions for:
    - Fixed Effects (FE) panel models
    - Instrumental Variable (IV) estimation
    - Interaction models with moderator variables
    - Fixed effects models with time trends
+
+## Environment Setup
+
+The project uses a conda environment defined in `environment.yml` with the following key libraries:
+
+```
+- pandas, numpy, scipy        # Core data manipulation
+- statsmodels, linearmodels   # Statistical modeling
+- scikit-learn               # Machine learning and imputation
+- matplotlib, seaborn        # Visualization
+- missingno                  # Missing data visualization
+- jupyterlab, ipykernel      # Notebook environment
+- openpyxl, xlrd             # Excel file handling
+- plotly                     # Interactive visualizations
+```
 
 ## Quick-Start Guide
 
@@ -94,6 +112,7 @@ Our analysis reveals several important insights:
    - Income inequality (Gini coefficient)
    - Gender inequality (GII)
    - Rule of law
+   
 3. We identified a threshold level of inequality beyond which the poverty-reduction benefits of financial inclusion diminish significantly.
 4. The effectiveness of financial inclusion policies varies over time and across countries, suggesting the need for context-specific approaches.
 
